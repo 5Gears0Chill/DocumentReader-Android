@@ -12,14 +12,14 @@ import android.graphics.BitmapFactory.decodeStream
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.regula.documentreader.api.DocumentReader
 import com.regula.documentreader.api.completions.IDocumentReaderCompletion
 import com.regula.documentreader.api.completions.IDocumentReaderPrepareCompletion
@@ -71,27 +71,32 @@ class MainActivity : AppCompatActivity() {
                         accessKey = results.getTextFieldValueByType(eVisualFieldType.FT_MRZ_STRINGS)
                             .replace("^", "").replace("\n", "")
                         DocumentReader.Instance().rfidScenario().setMrz(accessKey)
-                        DocumentReader.Instance().rfidScenario().setPacePasswordType(eRFID_Password_Type.PPT_MRZ)
+                        DocumentReader.Instance().rfidScenario()
+                            .setPacePasswordType(eRFID_Password_Type.PPT_MRZ)
                     } else {
-                        accessKey = results.getTextFieldValueByType(eVisualFieldType.FT_CARD_ACCESS_NUMBER)
+                        accessKey =
+                            results.getTextFieldValueByType(eVisualFieldType.FT_CARD_ACCESS_NUMBER)
                         if (accessKey != null && !accessKey.isEmpty()) {
                             DocumentReader.Instance().rfidScenario().setPassword(accessKey)
-                            DocumentReader.Instance().rfidScenario().setPacePasswordType(eRFID_Password_Type.PPT_CAN)
+                            DocumentReader.Instance().rfidScenario()
+                                .setPacePasswordType(eRFID_Password_Type.PPT_CAN)
                         }
                     }
                     //starting chip reading
-                    DocumentReader.Instance().startRFIDReader(this@MainActivity) { rfidAction, results_RFIDReader, _ ->
-                        if (rfidAction == DocReaderAction.COMPLETE || rfidAction == DocReaderAction.CANCEL) {
-                            displayResults(results_RFIDReader)
+                    DocumentReader.Instance()
+                        .startRFIDReader(this@MainActivity) { rfidAction, results_RFIDReader, _ ->
+                            if (rfidAction == DocReaderAction.COMPLETE || rfidAction == DocReaderAction.CANCEL) {
+                                displayResults(results_RFIDReader)
+                            }
                         }
-                    }
                 } else {
                     displayResults(results)
                 }
             } else {
                 //something happened before all results were ready
                 if (action == DocReaderAction.CANCEL) {
-                    Toast.makeText(this@MainActivity, "Scanning was cancelled", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, "Scanning was cancelled", Toast.LENGTH_LONG)
+                        .show()
                 } else if (action == DocReaderAction.ERROR) {
                     Toast.makeText(this@MainActivity, "Error:$error", Toast.LENGTH_LONG).show()
                 }
@@ -139,7 +144,10 @@ class MainActivity : AppCompatActivity() {
                             initDialog.setTitle("Downloading database: $progress%")
                         }
 
-                        override fun onPrepareCompleted(status: Boolean, error: DocumentReaderException?) {
+                        override fun onPrepareCompleted(
+                            status: Boolean,
+                            error: DocumentReaderException?
+                        ) {
 
                             //Initializing the reader
                             DocumentReader.Instance().initializeReader(
@@ -149,7 +157,8 @@ class MainActivity : AppCompatActivity() {
                                     initDialog.dismiss()
                                 }
 
-                                DocumentReader.Instance().customization().edit().setShowHelpAnimation(false).apply()
+                                DocumentReader.Instance().customization().edit()
+                                    .setShowHelpAnimation(false).apply()
 
                                 //initialization successful
                                 if (success) {
@@ -157,7 +166,8 @@ class MainActivity : AppCompatActivity() {
                                         clearResults()
 
                                         //starting video processing
-                                        DocumentReader.Instance().showScanner(this@MainActivity, completion)
+                                        DocumentReader.Instance()
+                                            .showScanner(this@MainActivity, completion)
                                     }
 
                                     recognizeImage!!.setOnClickListener {
@@ -186,14 +196,16 @@ class MainActivity : AppCompatActivity() {
                                         doRfidCb!!.isChecked = doRfid
                                         doRfidCb!!.setOnCheckedChangeListener { _, checked ->
                                             doRfid = checked
-                                            sharedPreferences!!.edit().putBoolean(DO_RFID, checked).apply()
+                                            sharedPreferences!!.edit().putBoolean(DO_RFID, checked)
+                                                .apply()
                                         }
                                     } else {
                                         doRfidCb!!.visibility = View.GONE
                                     }
 
                                     //getting current processing scenario and loading available scenarios to ListView
-                                    var currentScenario: String? = DocumentReader.Instance().processParams().scenario
+                                    var currentScenario: String? =
+                                        DocumentReader.Instance().processParams().scenario
                                     val scenarios = ArrayList<String>()
                                     for (scenario in DocumentReader.Instance().availableScenarios) {
                                         scenarios.add(scenario.name)
@@ -202,7 +214,8 @@ class MainActivity : AppCompatActivity() {
                                     //setting default scenario
                                     if (currentScenario == null || currentScenario.isEmpty()) {
                                         currentScenario = scenarios[0]
-                                        DocumentReader.Instance().processParams().scenario = currentScenario
+                                        DocumentReader.Instance().processParams().scenario =
+                                            currentScenario
                                     }
 
                                     val adapter = ScenarioAdapter(
@@ -224,7 +237,8 @@ class MainActivity : AppCompatActivity() {
                                     scenarioLv!!.onItemClickListener =
                                         AdapterView.OnItemClickListener { _, _, i, _ ->
                                             //setting selected scenario to DocumentReader params
-                                            DocumentReader.Instance().processParams().scenario = adapter.getItem(i)
+                                            DocumentReader.Instance().processParams().scenario =
+                                                adapter.getItem(i)
                                             selectedPosition = i
                                             adapter.notifyDataSetChanged()
                                         }
@@ -279,7 +293,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE -> {
@@ -288,7 +306,11 @@ class MainActivity : AppCompatActivity() {
                     //access to gallery is allowed
                     createImageBrowsingRequest()
                 } else {
-                    Toast.makeText(this@MainActivity, "Permission required, to browse images", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Permission required, to browse images",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -324,10 +346,16 @@ class MainActivity : AppCompatActivity() {
                 portraitIv!!.setImageBitmap(portrait)
             }
 
-            var documentImage: Bitmap? = results.getGraphicFieldImageByType(eGraphicFieldType.GF_DOCUMENT_IMAGE)
+            var documentImage: Bitmap? =
+                results.getGraphicFieldImageByType(eGraphicFieldType.GF_DOCUMENT_IMAGE)
             if (documentImage != null) {
                 val aspectRatio = documentImage.width.toDouble() / documentImage.height.toDouble()
-                documentImage = Bitmap.createScaledBitmap(documentImage, (480 * aspectRatio).toInt(), 480, false)
+                documentImage = Bitmap.createScaledBitmap(
+                    documentImage,
+                    (480 * aspectRatio).toInt(),
+                    480,
+                    false
+                )
                 docImageIv!!.setImageBitmap(documentImage)
             }
         }
@@ -346,7 +374,10 @@ class MainActivity : AppCompatActivity() {
         intent.type = "image/*"
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), REQUEST_BROWSE_PICTURE)
+        startActivityForResult(
+            Intent.createChooser(intent, "Select Picture"),
+            REQUEST_BROWSE_PICTURE
+        )
     }
 
     // loads bitmap from uri
@@ -379,7 +410,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     // see https://developer.android.com/topic/performance/graphics/load-bitmap.html
-    private fun calculateInSampleSize(options: BitmapFactory.Options, bitmapWidth: Int, bitmapHeight: Int): Int {
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        bitmapWidth: Int,
+        bitmapHeight: Int
+    ): Int {
         // Raw height and width of image
         val height = options.outHeight
         val width = options.outWidth
